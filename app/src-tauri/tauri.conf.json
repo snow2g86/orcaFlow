@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OrcaFlow",
+  "version": "0.1.0",
+  "identifier": "ai.orcaflow.app",
+  "build": {
+    "beforeDevCommand": "pnpm --filter frontend dev",
+    "beforeBuildCommand": "pnpm --filter frontend build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../../frontend/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OrcaFlow",
+        "width": 1280,
+        "height": 840,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg", "msi", "deb", "appimage"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [],
+    "externalBin": ["binaries/orca-sidecar"],
+    "copyright": "© 2026 OrcaFlow",
+    "category": "DeveloperTool",
+    "shortDescription": "Native multi-agent orchestration for open LLMs",
+    "longDescription": "OrcaFlow lets you design and run multi-agent workflows that access your local files, apps and browser directly — with open LLM providers of your choice."
+  },
+  "plugins": {}
+}

@@ -1,0 +1,29 @@
+version: 1
+name: "Code Reviewer"
+description: "소스 코드를 읽고 리뷰 요약을 생성하는 워크플로우."
+author: "orcaflow"
+tags: ["code", "review", "development"]
+policy: "default"
+default_llm_profile: "ollama-qwen2.5-14b"
+nodes:
+  - id: planner
+    role: "planner"
+    position: { x: 0, y: 0 }
+    overrides:
+      system_prompt: >
+        사용자가 지정한 소스 파일 또는 디렉토리를 탐색하고,
+        code_reviewer 에게 각 파일의 리뷰를 요청한다.
+  - id: code_reviewer
+    role: "code-reviewer"
+    position: { x: 300, y: 0 }
+  - id: summarizer
+    role: "summarizer"
+    position: { x: 600, y: 0 }
+edges:
+  - from: planner
+    to: code_reviewer
+    condition: "state.files != null"
+  - from: code_reviewer
+    to: summarizer
+    condition: "state.reviews != null"
+entrypoint: planner

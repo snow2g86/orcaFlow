@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Python sidecar ──────────────────────────────────────────
+  python-lint:
+    name: "Python Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Install dependencies
+        run: cd sidecar && uv sync --dev
+      - name: Ruff check
+        run: cd sidecar && uv run ruff check .
+      - name: Ruff format check
+        run: cd sidecar && uv run ruff format --check .
+      - name: Mypy
+        run: cd sidecar && uv run mypy orca_core
+      - name: Import linter
+        run: cd sidecar && uv run lint-imports
+
+  python-test:
+    name: "Python Test (${{ matrix.os }})"
+    needs: python-lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Install dependencies
+        run: cd sidecar && uv sync --dev
+      - name: Run tests
+        run: cd sidecar && uv run pytest tests -q --tb=short
+
+  # ── Frontend ────────────────────────────────────────────────
+  frontend-lint:
+    name: "Frontend Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        run: cd frontend && pnpm install --frozen-lockfile
+      - name: ESLint
+        run: cd frontend && pnpm lint
+      - name: TypeScript check
+        run: cd frontend && pnpm typecheck
+
+  frontend-test:
+    name: "Frontend Test"
+    needs: frontend-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        run: cd frontend && pnpm install --frozen-lockfile
+      - name: Vitest
+        run: cd frontend && pnpm test
+
+  # ── Tauri (Rust) ────────────────────────────────────────────
+  rust-check:
+    name: "Rust Check (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            deps-cmd: "sudo apt-get update -qq && sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev"
+          - os: macos-latest
+            deps-cmd: "true"
+          - os: windows-latest
+            deps-cmd: "true"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: ${{ matrix.deps-cmd }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        run: cd frontend && pnpm install --frozen-lockfile
+      - name: Build frontend (needed for Tauri)
+        run: cd frontend && pnpm build
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - name: Cargo check
+        run: cd app/src-tauri && cargo check
+      - name: Cargo clippy
+        run: cd app/src-tauri && cargo clippy -- -D warnings
+
+  # ── Script syntax check ────────────────────────────────────
+  scripts-check:
+    name: "Scripts Syntax"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell scripts
+        run: |
+          bash -n scripts/dev.sh
+          bash -n scripts/bundle-sidecar.sh
+          bash -n scripts/release.sh
+          bash -n scripts/clean.sh
+          bash -n scripts/install-deps.sh

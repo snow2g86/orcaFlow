@@ -1,0 +1,37 @@
+id: "policy-strict"
+name: "Strict Policy"
+description: "엄격 정책. 읽기 포함 모든 툴 호출에 사용자 승인 요구. 쉘/OS 자동화는 차단."
+mode: "strict"
+rules:
+  # 쉘 실행 차단
+  - id: "deny-shell"
+    scope: "tool"
+    effect: "deny"
+    matcher:
+      tool_names:
+        - "shell.exec"
+
+  # OS 자동화 차단
+  - id: "deny-os-automation"
+    scope: "tool"
+    effect: "deny"
+    matcher:
+      tool_names:
+        - "os.applescript"
+        - "os.powershell"
+
+  # 파일 삭제 차단
+  - id: "deny-delete"
+    scope: "tool"
+    effect: "deny"
+    matcher:
+      tool_names:
+        - "fs.delete"
+
+  # 나머지는 모두 승인 필요 (mode=strict 기본 동작)
+  - id: "ask-all-remaining"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "*"

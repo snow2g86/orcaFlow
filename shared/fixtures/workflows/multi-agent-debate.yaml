@@ -1,0 +1,47 @@
+version: 1
+name: "Multi-Agent Debate"
+description: "두 에이전트가 주제에 대해 찬반 토론하고 supervisor 가 결론을 종합하는 워크플로우."
+author: "orcaflow"
+tags: ["debate", "multi-agent", "reasoning"]
+policy: "default"
+default_llm_profile: "ollama-qwen2.5-14b"
+nodes:
+  - id: supervisor
+    role: "planner"
+    position: { x: 300, y: -100 }
+    overrides:
+      role_type: "supervisor"
+      system_prompt: >
+        사용자가 제시한 주제에 대해 두 토론자(pro, con)에게 각각
+        찬성/반대 논거를 요청하고, 양측 의견을 종합하여 결론을 내린다.
+        최대 2라운드 토론 후 종합한다.
+  - id: pro_debater
+    role: "planner"
+    position: { x: 0, y: 100 }
+    overrides:
+      role_type: "worker"
+      system_prompt: >
+        주어진 주제에 대해 찬성 입장에서 논리적 근거를 제시한다.
+        반대측 논거에 대한 반박도 포함한다.
+  - id: con_debater
+    role: "planner"
+    position: { x: 600, y: 100 }
+    overrides:
+      role_type: "worker"
+      system_prompt: >
+        주어진 주제에 대해 반대 입장에서 논리적 근거를 제시한다.
+        찬성측 논거에 대한 반박도 포함한다.
+edges:
+  - from: supervisor
+    to: pro_debater
+    condition: "state.topic != null"
+  - from: supervisor
+    to: con_debater
+    condition: "state.topic != null"
+  - from: pro_debater
+    to: supervisor
+    condition: "state.pro_argument != null"
+  - from: con_debater
+    to: supervisor
+    condition: "state.con_argument != null"
+entrypoint: supervisor

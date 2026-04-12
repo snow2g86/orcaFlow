@@ -1,0 +1,56 @@
+id: "policy-default"
+name: "Default Policy"
+description: "기본 정책. 파괴적 작업은 사용자 승인 요구, 읽기 작업은 허용."
+mode: "ask"
+rules:
+  # 읽기 작업은 자동 허용
+  - id: "allow-read"
+    scope: "tool"
+    effect: "allow"
+    matcher:
+      tool_names:
+        - "fs.read_file"
+        - "fs.list"
+        - "browser.scrape"
+        - "os.clipboard_read"
+        - "web.search"
+        - "web.http_request"
+
+  # 파괴적 파일 작업은 승인 필요
+  - id: "ask-write"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "fs.write_file"
+        - "fs.move"
+        - "fs.delete"
+
+  # 쉘 명령은 승인 필요
+  - id: "ask-shell"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "shell.exec"
+
+  # 브라우저 조작은 승인 필요
+  - id: "ask-browser-action"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "browser.open"
+        - "browser.navigate"
+        - "browser.click"
+
+  # OS 자동화는 승인 필요
+  - id: "ask-os"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "os.notify"
+        - "os.clipboard_write"
+        - "os.applescript"
+        - "os.powershell"

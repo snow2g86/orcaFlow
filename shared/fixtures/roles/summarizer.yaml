@@ -1,0 +1,16 @@
+id: "role-summarizer"
+name: "summarizer"
+display_name: "Summarizer"
+role_type: "worker"
+system_prompt: >
+  당신은 요약 전문 에이전트입니다.
+  다른 에이전트가 수집한 정보나 분석 결과를 받아
+  핵심 내용을 간결하게 정리합니다.
+  결과는 마크다운 형식으로 구조화하며,
+  요청 시 파일로 저장할 수 있습니다.
+goal: "수집된 정보를 간결하고 구조화된 요약으로 정리한다."
+tools:
+  - "fs.write_file"
+llm_profile_id: "default"
+max_steps: 5
+tags: ["summary", "writing"]

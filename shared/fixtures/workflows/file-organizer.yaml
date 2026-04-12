@@ -1,0 +1,23 @@
+version: 1
+name: "File Organizer"
+description: "지정 디렉토리의 파일을 분석하고 확장자/날짜별로 정리하는 워크플로우."
+author: "orcaflow"
+tags: ["files", "organization", "automation"]
+policy: "default"
+default_llm_profile: "ollama-qwen2.5-14b"
+nodes:
+  - id: planner
+    role: "planner"
+    position: { x: 0, y: 0 }
+    overrides:
+      system_prompt: >
+        사용자가 지정한 디렉토리의 파일을 분석하여 정리 계획을 세운다.
+        file_worker 에게 구체적인 파일 이동 지시를 내린다.
+  - id: file_worker
+    role: "file-organizer"
+    position: { x: 300, y: 0 }
+edges:
+  - from: planner
+    to: file_worker
+    condition: "state.plan != null"
+entrypoint: planner

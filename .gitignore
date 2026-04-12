@@ -1,0 +1,56 @@
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Editors ----
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- Rust / Tauri ----
+app/src-tauri/target/
+app/src-tauri/gen/
+**/*.rs.bk
+Cargo.lock.bak
+
+# ---- Node / Vite ----
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+.turbo/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- OrcaFlow runtime data ----
+~/.orcaflow/
+.orcaflow-dev/
+sidecar/orcaflow.db
+sidecar/logs/
+frontend/.eslintcache
+
+# ---- Logs / temp ----
+*.log
+tmp/
+.cache/
+
+# ---- Build artifacts ----
+build/
+out/
+target/
+release/

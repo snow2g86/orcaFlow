@@ -1,0 +1,62 @@
+id: "policy-coding-assistant"
+name: "Coding Assistant Policy"
+description: "코딩 도우미용 정책. 파일 읽기/쓰기 허용, 쉘은 승인 필요."
+mode: "ask"
+rules:
+  # 파일 시스템 읽기/쓰기/이동 허용
+  - id: "allow-fs"
+    scope: "tool"
+    effect: "allow"
+    matcher:
+      tool_names:
+        - "fs.read_file"
+        - "fs.write_file"
+        - "fs.list"
+        - "fs.move"
+
+  # 파일 삭제는 승인 필요
+  - id: "ask-fs-delete"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "fs.delete"
+
+  # 쉘 명령은 승인 필요
+  - id: "ask-shell"
+    scope: "tool"
+    effect: "ask"
+    matcher:
+      tool_names:
+        - "shell.exec"
+
+  # 웹 검색 허용
+  - id: "allow-web"
+    scope: "tool"
+    effect: "allow"
+    matcher:
+      tool_names:
+        - "web.search"
+        - "web.http_request"
+
+  # 브라우저/OS 차단 (코딩에 불필요)
+  - id: "deny-browser"
+    scope: "tool"
+    effect: "deny"
+    matcher:
+      tool_names:
+        - "browser.open"
+        - "browser.navigate"
+        - "browser.click"
+        - "browser.scrape"
+
+  - id: "deny-os"
+    scope: "tool"
+    effect: "deny"
+    matcher:
+      tool_names:
+        - "os.applescript"
+        - "os.powershell"
+        - "os.notify"
+        - "os.clipboard_read"
+        - "os.clipboard_write"

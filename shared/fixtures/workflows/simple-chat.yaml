@@ -1,0 +1,13 @@
+version: 1
+name: "Simple Chat"
+description: "단순 대화 워크플로우. 플래너만 사용하며 외부 툴 호출 없음."
+author: "orcaflow"
+tags: ["starter", "chat"]
+policy: "default"
+default_llm_profile: "ollama-qwen2.5-14b"
+nodes:
+  - id: planner
+    role: "planner"
+    position: { x: 0, y: 0 }
+edges: []
+entrypoint: planner

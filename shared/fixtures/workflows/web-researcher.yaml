@@ -1,0 +1,33 @@
+version: 1
+name: "Web Researcher"
+description: "웹에서 주제를 검색하고 결과를 요약하여 파일로 저장하는 워크플로우."
+author: "orcaflow"
+tags: ["web", "research", "search"]
+policy: "default"
+default_llm_profile: "ollama-qwen2.5-14b"
+nodes:
+  - id: planner
+    role: "planner"
+    position: { x: 0, y: 0 }
+    overrides:
+      system_prompt: >
+        사용자 질문을 분석하여 검색 쿼리를 구성하고,
+        web_researcher 에게 검색 및 수집을 지시한다.
+        수집된 정보는 summarizer 가 정리한다.
+  - id: web_researcher
+    role: "web-researcher"
+    position: { x: 300, y: 0 }
+  - id: summarizer
+    role: "summarizer"
+    position: { x: 600, y: 0 }
+    overrides:
+      tools:
+        - "fs.write_file"
+edges:
+  - from: planner
+    to: web_researcher
+    condition: "state.queries != null"
+  - from: web_researcher
+    to: summarizer
+    condition: "state.results != null"
+entrypoint: planner

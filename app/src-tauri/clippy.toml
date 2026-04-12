@@ -1,0 +1,6 @@
+avoid-breaking-exported-api = false
+too-many-arguments-threshold = 8
+cognitive-complexity-threshold = 25
+disallowed-methods = [
+    { path = "std::env::set_var", reason = "env 변경은 config 레이어에서만" },
+]
