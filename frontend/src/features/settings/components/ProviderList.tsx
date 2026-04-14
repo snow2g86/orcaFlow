@@ -14,7 +14,7 @@ const HEALTH_BADGE: Record<string, 'default' | 'success' | 'error' | 'info'> = {
 }
 
 export function ProviderList() {
-  const { providers, providerHealth, loading, loadProviders, checkHealth } =
+  const { providers, providerHealth, loading, loadProviders, checkHealth, fetchModels } =
     useSettingsStore()
 
   useEffect(() => {
@@ -57,7 +57,10 @@ export function ProviderList() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  onClick={() => void checkHealth(p.id)}
+                  onClick={() => {
+                    void checkHealth(p.id)
+                    void fetchModels(p.id)
+                  }}
                   disabled={providerHealth[p.id] === 'checking'}
                 >
                   Test

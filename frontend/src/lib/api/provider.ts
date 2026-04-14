@@ -43,3 +43,9 @@ export async function checkProviderHealth(
 ): Promise<ProviderHealthResult> {
   return sidecarFetch<ProviderHealthResult>(`/providers/${providerId}/health`)
 }
+
+export async function listProviderModels(
+  providerId: string,
+): Promise<string[]> {
+  return sidecarFetch<string[]>(`/providers/${providerId}/models`)
+}

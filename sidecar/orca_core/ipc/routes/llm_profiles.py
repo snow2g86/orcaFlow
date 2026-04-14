@@ -1,4 +1,4 @@
-"""LLM profiles routes — list / upsert."""
+"""LLM profiles routes — list / create / upsert."""
 
 from __future__ import annotations
 
@@ -17,6 +17,15 @@ async def list_profiles(
     services: AppServices = Depends(get_services),
 ) -> list[dict[str, Any]]:
     return [p.model_dump(mode="json") for p in services.llm_profiles.values()]
+
+
+@router.post("", summary="create llm profile")
+async def create_profile(
+    profile: LLMProfile,
+    services: AppServices = Depends(get_services),
+) -> dict[str, Any]:
+    services.llm_profiles[profile.id] = profile
+    return profile.model_dump(mode="json")
 
 
 @router.put("/{profile_id}", summary="upsert llm profile")

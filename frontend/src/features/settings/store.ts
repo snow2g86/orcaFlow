@@ -12,6 +12,7 @@ type HealthStatus = 'unknown' | 'checking' | 'ok' | 'fail'
 type SettingsState = {
   providers: ProviderSummary[]
   providerHealth: Record<string, HealthStatus>
+  providerModels: Record<string, string[]>
   profiles: LlmProfileSummary[]
   loading: boolean
   error: string | null
@@ -24,12 +25,14 @@ type SettingsState = {
     apiKey?: string | undefined
   }) => Promise<void>
   checkHealth: (providerId: string) => Promise<void>
+  fetchModels: (providerId: string) => Promise<void>
   loadProfiles: () => Promise<void>
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   providers: [],
   providerHealth: {},
+  providerModels: {},
   profiles: [],
   loading: false,
   error: null,
@@ -53,8 +56,21 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const provider = await providerApi.addProvider(data)
       const { providers } = get()
       set({ providers: [...providers, provider] })
+      // Provider 추가 후 자동으로 모델 목록 fetch
+      void get().fetchModels(provider.id)
     } catch (e) {
       set({ error: e instanceof Error ? e.message : 'Failed to add provider' })
+    }
+  },
+
+  fetchModels: async (providerId) => {
+    try {
+      const models = await providerApi.listProviderModels(providerId)
+      const current = get().providerModels
+      set({ providerModels: { ...current, [providerId]: models } })
+    } catch {
+      const current = get().providerModels
+      set({ providerModels: { ...current, [providerId]: [] } })
     }
   },
 
