@@ -1,4 +1,4 @@
-// LLM Profile editor — create/edit profile form.
+// LLM Profile editor — card layout with grid form + auto model fetch.
 
 import { useEffect, useState } from 'react'
 
@@ -21,14 +21,12 @@ export function LLMProfileEditor() {
   const models = providerId ? providerModels[providerId] ?? null : null
   const modelsLoading = providerId !== '' && models === null
 
-  // Provider 선택 시 자동으로 모델 목록 fetch
   useEffect(() => {
     if (providerId && !(providerId in providerModels)) {
       void fetchModels(providerId)
     }
   }, [providerId, providerModels, fetchModels])
 
-  // Provider 변경 시 model 초기화
   const handleProviderChange = (id: string) => {
     setProviderId(id)
     setModel('')
@@ -66,109 +64,107 @@ export function LLMProfileEditor() {
   }
 
   return (
-    <div className="llm-profile-editor">
-      <h4>Add LLM Profile</h4>
-      <div className="policy-rule-editor__row" style={{ flexWrap: 'wrap' }}>
-        <div className="policy-rule-editor__field">
-          <label>Name</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="node-inspector__input"
-            placeholder="my-model-profile"
-          />
-        </div>
-        <div className="policy-rule-editor__field">
-          <label>Provider</label>
-          <select
-            value={providerId}
-            onChange={(e) => handleProviderChange(e.target.value)}
-            className="editor-toolbar__select"
-          >
-            <option value="" disabled>
-              Select...
-            </option>
-            {providers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="policy-rule-editor__field">
-          <label>Model</label>
-          {models && models.length > 0 ? (
+    <div className="settings-card">
+      <div className="settings-card__header">
+        <h3 className="settings-card__title">Create LLM Profile</h3>
+      </div>
+      <div className="settings-card__body">
+        <div className="settings-form">
+          <div className="settings-field">
+            <label className="settings-field__label">Profile Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="settings-field__input"
+              placeholder="my-model-profile"
+            />
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__label">Provider</label>
             <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="editor-toolbar__select"
+              value={providerId}
+              onChange={(e) => handleProviderChange(e.target.value)}
+              className="settings-field__select"
             >
-              <option value="" disabled>
-                {modelsLoading ? 'Loading...' : 'Select model...'}
-              </option>
-              {models.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
+              <option value="" disabled>Select provider...</option>
+              {providers.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
-          ) : (
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__label">Model</label>
+            {models && models.length > 0 ? (
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="settings-field__select"
+              >
+                <option value="" disabled>Select model...</option>
+                {models.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="settings-field__input"
+                placeholder={modelsLoading ? 'Loading models...' : 'Enter model name'}
+                disabled={modelsLoading}
+              />
+            )}
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__label">Temperature</label>
             <input
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="node-inspector__input"
-              placeholder={modelsLoading ? 'Loading models...' : 'model name'}
+              type="number"
+              step="0.1"
+              min="0"
+              max="2"
+              value={temperature}
+              onChange={(e) => setTemperature(e.target.value)}
+              className="settings-field__input"
             />
-          )}
-        </div>
-        <div className="policy-rule-editor__field">
-          <label>Temperature</label>
-          <input
-            type="number"
-            step="0.1"
-            value={temperature}
-            onChange={(e) => setTemperature(e.target.value)}
-            className="node-inspector__input"
-          />
-        </div>
-        <div className="policy-rule-editor__field">
-          <label>Max Tokens</label>
-          <input
-            type="number"
-            value={maxTokens}
-            onChange={(e) => setMaxTokens(e.target.value)}
-            className="node-inspector__input"
-          />
-        </div>
-        <div className="policy-rule-editor__field">
-          <label>
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__label">Max Tokens</label>
             <input
-              type="checkbox"
-              checked={isPlanner}
-              onChange={(e) => setIsPlanner(e.target.checked)}
-            />{' '}
-            Planner
-          </label>
+              type="number"
+              min="1"
+              value={maxTokens}
+              onChange={(e) => setMaxTokens(e.target.value)}
+              className="settings-field__input"
+            />
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__checkbox">
+              <input
+                type="checkbox"
+                checked={isPlanner}
+                onChange={(e) => setIsPlanner(e.target.checked)}
+              />
+              Planner
+            </label>
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__checkbox">
+              <input
+                type="checkbox"
+                checked={isDefault}
+                onChange={(e) => setIsDefault(e.target.checked)}
+              />
+              Default
+            </label>
+          </div>
+          <div className="settings-form__actions">
+            <Button size="sm" variant="primary" onClick={() => void handleCreate()} disabled={creating}>
+              {creating ? 'Creating...' : 'Create Profile'}
+            </Button>
+          </div>
+          {formError && <p className="settings-form__error">{formError}</p>}
         </div>
-        <div className="policy-rule-editor__field">
-          <label>
-            <input
-              type="checkbox"
-              checked={isDefault}
-              onChange={(e) => setIsDefault(e.target.checked)}
-            />{' '}
-            Default
-          </label>
-        </div>
-        <Button size="sm" variant="primary" onClick={() => void handleCreate()} disabled={creating}>
-          {creating ? 'Creating...' : 'Create'}
-        </Button>
       </div>
-      {formError && (
-        <p style={{ color: 'var(--color-error, #e53e3e)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
-          {formError}
-        </p>
-      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-// Provider list with health status.
+// Provider list with health status — card layout.
 
 import { useEffect } from 'react'
 
@@ -14,12 +14,11 @@ const HEALTH_BADGE: Record<string, 'default' | 'success' | 'error' | 'info'> = {
 }
 
 export function ProviderList() {
-  const { providers, providerHealth, loading, loadProviders, checkHealth, fetchModels, deleteProvider } =
+  const { providers, providerHealth, providerModels, loading, loadProviders, checkHealth, fetchModels, deleteProvider } =
     useSettingsStore()
 
   useEffect(() => {
     void loadProviders().then(() => {
-      // 로드 후 모든 provider 자동 헬스체크 + 모델 fetch
       const current = useSettingsStore.getState().providers
       for (const p of current) {
         void checkHealth(p.id)
@@ -31,70 +30,73 @@ export function ProviderList() {
   if (loading) return <p className="muted">Loading providers...</p>
 
   return (
-    <div className="provider-list">
-      <h3>Providers</h3>
-      <table className="policy-rule-list__table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Kind</th>
-            <th>Base URL</th>
-            <th>Health</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {providers.map((p) => (
-            <tr key={p.id}>
-              <td>{p.name}</td>
-              <td>
-                <code>{p.kind}</code>
-              </td>
-              <td>
-                <code>{p.baseUrl}</code>
-              </td>
-              <td>
-                <Badge
-                  variant={HEALTH_BADGE[providerHealth[p.id] ?? 'unknown'] ?? 'default'}
-                >
-                  {providerHealth[p.id] ?? 'unknown'}
-                </Badge>
-              </td>
-              <td>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    void checkHealth(p.id)
-                    void fetchModels(p.id)
-                  }}
-                  disabled={providerHealth[p.id] === 'checking'}
-                >
-                  Test
-                </Button>
-                <button
-                  onClick={() => void deleteProvider(p.id)}
-                  title="Delete"
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--color-error, #e53e3e)', fontSize: '1.1rem',
-                    padding: '0.25rem', marginLeft: '0.25rem',
-                  }}
-                >
-                  &#x2715;
-                </button>
-              </td>
-            </tr>
-          ))}
-          {providers.length === 0 && (
+    <div className="settings-card">
+      <div className="settings-card__header">
+        <h3 className="settings-card__title">Providers</h3>
+        <Badge variant="default">{providers.length}</Badge>
+      </div>
+      {providers.length === 0 ? (
+        <div className="settings-card__body">
+          <p className="muted" style={{ textAlign: 'center', margin: 0 }}>
+            No providers configured. Add one below.
+          </p>
+        </div>
+      ) : (
+        <table className="settings-table">
+          <thead>
             <tr>
-              <td colSpan={5} className="muted" style={{ textAlign: 'center' }}>
-                No providers configured
-              </td>
+              <th>Name</th>
+              <th>Kind</th>
+              <th>Endpoint</th>
+              <th>Models</th>
+              <th>Health</th>
+              <th style={{ width: 1 }}></th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {providers.map((p) => {
+              const models = providerModels[p.id] ?? []
+              return (
+                <tr key={p.id}>
+                  <td style={{ fontWeight: 500 }}>{p.name}</td>
+                  <td><code>{p.kind}</code></td>
+                  <td><code>{p.baseUrl}</code></td>
+                  <td>
+                    <span className="muted">{models.length > 0 ? `${models.length} models` : '-'}</span>
+                  </td>
+                  <td>
+                    <Badge variant={HEALTH_BADGE[providerHealth[p.id] ?? 'unknown'] ?? 'default'}>
+                      {providerHealth[p.id] ?? 'unknown'}
+                    </Badge>
+                  </td>
+                  <td>
+                    <div className="settings-table__actions">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          void checkHealth(p.id)
+                          void fetchModels(p.id)
+                        }}
+                        disabled={providerHealth[p.id] === 'checking'}
+                      >
+                        Test
+                      </Button>
+                      <button
+                        className="settings-delete-btn"
+                        onClick={() => void deleteProvider(p.id)}
+                        title="Delete provider"
+                      >
+                        &#x2715;
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
