@@ -24,9 +24,11 @@ type SettingsState = {
     baseUrl: string
     apiKey?: string | undefined
   }) => Promise<void>
+  deleteProvider: (providerId: string) => Promise<void>
   checkHealth: (providerId: string) => Promise<void>
   fetchModels: (providerId: string) => Promise<void>
   loadProfiles: () => Promise<void>
+  deleteProfile: (profileId: string) => Promise<void>
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -65,6 +67,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
+  deleteProvider: async (providerId) => {
+    try {
+      await providerApi.deleteProvider(providerId)
+      const { providers } = get()
+      set({ providers: providers.filter((p) => p.id !== providerId), error: null })
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : 'Failed to delete provider' })
+    }
+  },
+
   fetchModels: async (providerId) => {
     try {
       const models = await providerApi.listProviderModels(providerId)
@@ -91,6 +103,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     } catch {
       const current = get().providerHealth
       set({ providerHealth: { ...current, [providerId]: 'fail' } })
+    }
+  },
+
+  deleteProfile: async (profileId) => {
+    try {
+      await llmProfileApi.deleteLlmProfile(profileId)
+      const { profiles } = get()
+      set({ profiles: profiles.filter((p) => p.id !== profileId), error: null })
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : 'Failed to delete profile' })
     }
   },
 

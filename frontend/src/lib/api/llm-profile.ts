@@ -40,6 +40,10 @@ export async function createLlmProfile(
   return sidecarPost<LlmProfileDetail>('/llm-profiles', data as Record<string, unknown>)
 }
 
+export async function deleteLlmProfile(id: string): Promise<void> {
+  await sidecarFetch(`/llm-profiles/${id}`, { method: 'DELETE' })
+}
+
 export async function updateLlmProfile(
   id: string,
   data: Partial<Omit<LlmProfileDetail, 'id'>>,

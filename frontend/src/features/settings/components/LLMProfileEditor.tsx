@@ -75,7 +75,7 @@ export function LLMProfileEditor() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="node-inspector__input"
-            placeholder="ollama-qwen2.5-14b"
+            placeholder="my-model-profile"
           />
         </div>
         <div className="policy-rule-editor__field">

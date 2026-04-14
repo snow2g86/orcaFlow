@@ -66,6 +66,30 @@ async def provider_health(
     return result.model_dump(mode="json")
 
 
+@router.delete("/{provider_id}", summary="delete provider")
+async def delete_provider(
+    provider_id: str,
+    services: AppServices = Depends(get_services),
+) -> dict[str, str]:
+    """Provider 삭제. 연결된 LLM Profile 이 있으면 거부."""
+    # 연결된 profile 확인
+    linked = [p for p in services.llm_profiles.values() if p.provider_id == provider_id]
+    if linked:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot delete: {len(linked)} profile(s) still reference this provider",
+        )
+    entry = services.provider_registry.get_entry(provider_id)
+    # Registry 에서 제거
+    services.provider_registry._entries.pop(provider_id, None)
+    # DB 에서 제거
+    repo = getattr(services, "_provider_repo", None)
+    if repo is not None:
+        await repo.delete(provider_id)
+    return {"deleted": provider_id}
+
+
 @router.get("/{provider_id}/models", summary="list provider models")
 async def list_provider_models(
     provider_id: str,

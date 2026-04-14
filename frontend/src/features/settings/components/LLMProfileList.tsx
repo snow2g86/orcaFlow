@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { useSettingsStore } from '@/features/settings/store'
 
 export function LLMProfileList() {
-  const { profiles, providers, loadProfiles } = useSettingsStore()
+  const { profiles, providers, loadProfiles, deleteProfile } = useSettingsStore()
   const providerName = (id: string) =>
     providers.find((p) => p.id === id)?.name ?? id
 
@@ -24,6 +24,7 @@ export function LLMProfileList() {
             <th>Model</th>
             <th>Provider</th>
             <th>Flags</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -38,11 +39,23 @@ export function LLMProfileList() {
                 {p.isDefault && <Badge variant="success">Default</Badge>}
                 {p.isPlanner && <Badge variant="info">Planner</Badge>}
               </td>
+              <td>
+                <button
+                  onClick={() => void deleteProfile(p.id)}
+                  title="Delete"
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--color-error, #e53e3e)', fontSize: '1.1rem', padding: '0.25rem',
+                  }}
+                >
+                  &#x2715;
+                </button>
+              </td>
             </tr>
           ))}
           {profiles.length === 0 && (
             <tr>
-              <td colSpan={4} className="muted" style={{ textAlign: 'center' }}>
+              <td colSpan={5} className="muted" style={{ textAlign: 'center' }}>
                 No profiles configured
               </td>
             </tr>

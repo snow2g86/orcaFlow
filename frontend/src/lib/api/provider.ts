@@ -44,6 +44,10 @@ export async function checkProviderHealth(
   return sidecarFetch<ProviderHealthResult>(`/providers/${providerId}/health`)
 }
 
+export async function deleteProvider(providerId: string): Promise<void> {
+  await sidecarFetch(`/providers/${providerId}`, { method: 'DELETE' })
+}
+
 export async function listProviderModels(
   providerId: string,
 ): Promise<string[]> {

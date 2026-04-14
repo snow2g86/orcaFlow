@@ -14,12 +14,19 @@ const HEALTH_BADGE: Record<string, 'default' | 'success' | 'error' | 'info'> = {
 }
 
 export function ProviderList() {
-  const { providers, providerHealth, loading, loadProviders, checkHealth, fetchModels } =
+  const { providers, providerHealth, loading, loadProviders, checkHealth, fetchModels, deleteProvider } =
     useSettingsStore()
 
   useEffect(() => {
-    void loadProviders()
-  }, [loadProviders])
+    void loadProviders().then(() => {
+      // 로드 후 모든 provider 자동 헬스체크 + 모델 fetch
+      const current = useSettingsStore.getState().providers
+      for (const p of current) {
+        void checkHealth(p.id)
+        void fetchModels(p.id)
+      }
+    })
+  }, [loadProviders, checkHealth, fetchModels])
 
   if (loading) return <p className="muted">Loading providers...</p>
 
@@ -65,6 +72,17 @@ export function ProviderList() {
                 >
                   Test
                 </Button>
+                <button
+                  onClick={() => void deleteProvider(p.id)}
+                  title="Delete"
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--color-error, #e53e3e)', fontSize: '1.1rem',
+                    padding: '0.25rem', marginLeft: '0.25rem',
+                  }}
+                >
+                  &#x2715;
+                </button>
               </td>
             </tr>
           ))}
