@@ -25,8 +25,19 @@ from typing import NoReturn
 import uvicorn
 
 from . import __version__
-from .config import Settings, load_config
+from .config import Config, Settings, load_config
+from .ipc.dependencies import AppServices
 from .ipc.http_app import create_app
+from .orchestrator import EventBus, GraphRunner
+from .persistence.db import Database
+from .persistence.repo.providers import ProvidersRepository
+from .persistence.repo.llm_profiles import LLMProfilesRepository
+from .providers.ollama import OllamaAdapter
+from .providers.openai_compatible import OpenAICompatibleAdapter
+from .providers.registry import ProviderRegistry
+from .schema.policy import Policy
+from .tools.register_all import create_default_registry
+from .tools.runtime import ToolRuntime
 
 
 def _emit_handshake(port: int, token: str) -> None:
@@ -77,6 +88,83 @@ async def _serve(sock: socket.socket, app, *, host: str) -> None:
     await server.serve()
 
 
+async def _build_services(config: Config) -> AppServices:
+    """DB 초기화 → Provider/Profile 로드 → AppServices 조립."""
+    db = Database(config.db.path)
+    await db.initialize()
+
+    provider_repo = ProvidersRepository(db)
+    profile_repo = LLMProfilesRepository(db)
+
+    # DB 에서 기존 데이터 로드
+    providers = await provider_repo.list_all()
+    profiles = await profile_repo.list_all()
+
+    # Provider → Adapter 매핑
+    registry = ProviderRegistry()
+    for p in providers:
+        adapter = OllamaAdapter(p) if p.kind == "ollama" else OpenAICompatibleAdapter(p)
+        registry.register(p, adapter)
+
+    # Tool 등록
+    tool_reg = create_default_registry()
+    event_bus = EventBus()
+
+    workspace = config.workspace
+    logs_dir = workspace / "logs"
+    journal_dir = workspace / "journal"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    journal_dir.mkdir(parents=True, exist_ok=True)
+
+    # No-op 트랜잭션 팩토리 (Production 용 DB 트랜잭션은 M5 에서 확장)
+    from .tools._base import TransactionScope
+
+    class _NoOpWriter:
+        async def write(self, *args, **kwargs):
+            pass
+
+    class _NoOpTxContext:
+        async def __aenter__(self) -> TransactionScope:
+            return TransactionScope(
+                audit_db_writer=None,
+                journal_db_writer=None,
+                tool_call_writer=_NoOpWriter(),  # type: ignore[arg-type]
+            )
+
+        async def __aexit__(self, *args):
+            pass
+
+    tool_runtime = ToolRuntime(
+        transaction_factory=_NoOpTxContext,
+        audit_log_path=logs_dir / "audit.log",
+        journal_base_dir=journal_dir,
+    )
+    runner = GraphRunner()
+
+    services = AppServices(
+        tool_registry=tool_reg,
+        provider_registry=registry,
+        tool_runtime=tool_runtime,
+        event_bus=event_bus,
+        runner=runner,
+    )
+    # In-memory 에 DB 데이터 로드
+    for prof in profiles:
+        services.llm_profiles[prof.id] = prof
+
+    # 기본 정책
+    policy = Policy(name="trusted", mode="trusted", rules=[])
+    services.policies[policy.id] = policy
+    services.default_policy_id = policy.id
+
+    # Repo 참조 보관 (라우트에서 DB 영속화 용도)
+    services._db = db  # type: ignore[attr-defined]
+    services._provider_repo = provider_repo  # type: ignore[attr-defined]
+    services._profile_repo = profile_repo  # type: ignore[attr-defined]
+
+    return services
+
+
 def main() -> NoReturn:
     config = load_config(Settings())
     _configure_logging(config.app.log_level)
@@ -85,7 +173,9 @@ def main() -> NoReturn:
     sock = _reserve_port(config.sidecar.host, config.sidecar.port)
     actual_port = sock.getsockname()[1]
 
-    app = create_app(config=config, token=token)
+    services = asyncio.run(_build_services(config))
+
+    app = create_app(config=config, token=token, services=services)
 
     _emit_handshake(actual_port, token)
 

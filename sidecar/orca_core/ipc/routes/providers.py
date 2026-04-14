@@ -49,6 +49,10 @@ async def add_provider(
     )
     adapter = _create_adapter(provider)
     services.provider_registry.register(provider, adapter)
+    # DB 영속화
+    repo = getattr(services, "_provider_repo", None)
+    if repo is not None:
+        await repo.upsert(provider)
     return provider.model_dump(mode="json")
 
 

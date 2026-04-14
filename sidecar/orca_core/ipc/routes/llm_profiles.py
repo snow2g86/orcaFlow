@@ -25,6 +25,10 @@ async def create_profile(
     services: AppServices = Depends(get_services),
 ) -> dict[str, Any]:
     services.llm_profiles[profile.id] = profile
+    # DB 영속화
+    repo = getattr(services, "_profile_repo", None)
+    if repo is not None:
+        await repo.upsert(profile)
     return profile.model_dump(mode="json")
 
 
@@ -36,4 +40,8 @@ async def upsert_profile(
 ) -> dict[str, Any]:
     updated = profile.model_copy(update={"id": profile_id})
     services.llm_profiles[profile_id] = updated
+    # DB 영속화
+    repo = getattr(services, "_profile_repo", None)
+    if repo is not None:
+        await repo.upsert(updated)
     return updated.model_dump(mode="json")
