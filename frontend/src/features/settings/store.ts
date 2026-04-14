@@ -59,7 +59,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Provider 추가 후 자동으로 모델 목록 fetch
       void get().fetchModels(provider.id)
     } catch (e) {
-      set({ error: e instanceof Error ? e.message : 'Failed to add provider' })
+      const msg = e instanceof Error ? e.message : 'Failed to add provider'
+      set({ error: msg })
+      throw e
     }
   },
 

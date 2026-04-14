@@ -19,23 +19,33 @@ const KINDS: ProviderKind[] = [
 ]
 
 export function ProviderAddForm() {
-  const { addProvider } = useSettingsStore()
+  const { addProvider, error } = useSettingsStore()
   const [name, setName] = useState('')
   const [kind, setKind] = useState<ProviderKind>('ollama')
   const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434')
   const [apiKey, setApiKey] = useState('')
+  const [adding, setAdding] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim() || !baseUrl.trim()) return
-    void addProvider({
-      name: name.trim(),
-      kind,
-      baseUrl: baseUrl.trim(),
-      apiKey: apiKey.trim() || undefined,
-    })
-    setName('')
-    setBaseUrl('http://127.0.0.1:11434')
-    setApiKey('')
+    setAdding(true)
+    setLocalError(null)
+    try {
+      await addProvider({
+        name: name.trim(),
+        kind,
+        baseUrl: baseUrl.trim(),
+        apiKey: apiKey.trim() || undefined,
+      })
+      setName('')
+      setBaseUrl('http://127.0.0.1:11434')
+      setApiKey('')
+    } catch (e) {
+      setLocalError(e instanceof Error ? e.message : 'Failed to add provider')
+    } finally {
+      setAdding(false)
+    }
   }
 
   return (
@@ -84,10 +94,15 @@ export function ProviderAddForm() {
             placeholder="optional"
           />
         </div>
-        <Button size="sm" variant="primary" onClick={handleAdd}>
-          Add
+        <Button size="sm" variant="primary" onClick={() => void handleAdd()} disabled={adding}>
+          {adding ? 'Adding...' : 'Add'}
         </Button>
       </div>
+      {(localError ?? error) && (
+        <p style={{ color: 'var(--color-error, #e53e3e)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+          {localError ?? error}
+        </p>
+      )}
     </div>
   )
 }
