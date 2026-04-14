@@ -65,6 +65,10 @@ OrcaFlow/
 └── CONVENTIONS.md            # 요약 코딩 규약
 ```
 
+## 사용 가이드
+
+상세한 사용법은 [USAGE.md](./USAGE.md)를 참고하세요. Provider 설정, LLM Profile 생성, 워크플로우 실행, 정책 관리 등의 단계별 안내가 포함되어 있습니다.
+
 ## 빠른 시작
 
 ### 사전 요구 사항
