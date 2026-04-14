@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .. import __version__
@@ -60,6 +61,13 @@ def create_app(
     if services is not None:
         app.state.services = services
 
+    # CORS: dev 모드에서 Tauri WebView(localhost:5173) → sidecar(127.0.0.1) 허용
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "tauri://localhost"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.add_middleware(TokenAuthMiddleware, token=token)
 
     _install_exception_handlers(app)
