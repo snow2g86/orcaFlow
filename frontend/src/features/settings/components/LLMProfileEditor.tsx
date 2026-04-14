@@ -15,6 +15,8 @@ export function LLMProfileEditor() {
   const [maxTokens, setMaxTokens] = useState('4096')
   const [isPlanner, setIsPlanner] = useState(false)
   const [isDefault, setIsDefault] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [creating, setCreating] = useState(false)
 
   const models = providerId ? providerModels[providerId] ?? null : null
   const modelsLoading = providerId !== '' && models === null
@@ -34,6 +36,8 @@ export function LLMProfileEditor() {
 
   const handleCreate = async () => {
     if (!name.trim() || !model.trim() || !providerId) return
+    setFormError(null)
+    setCreating(true)
     try {
       await llmProfileApi.createLlmProfile({
         name: name.trim(),
@@ -53,9 +57,11 @@ export function LLMProfileEditor() {
       setMaxTokens('4096')
       setIsPlanner(false)
       setIsDefault(false)
-      void loadProfiles()
-    } catch {
-      // error is handled by store
+      await loadProfiles()
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : 'Failed to create profile')
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -154,10 +160,15 @@ export function LLMProfileEditor() {
             Default
           </label>
         </div>
-        <Button size="sm" variant="primary" onClick={() => void handleCreate()}>
-          Create
+        <Button size="sm" variant="primary" onClick={() => void handleCreate()} disabled={creating}>
+          {creating ? 'Creating...' : 'Create'}
         </Button>
       </div>
+      {formError && (
+        <p style={{ color: 'var(--color-error, #e53e3e)', marginTop: '0.5rem', fontSize: '0.85rem' }}>
+          {formError}
+        </p>
+      )}
     </div>
   )
 }

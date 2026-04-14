@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge'
 import { useSettingsStore } from '@/features/settings/store'
 
 export function LLMProfileList() {
-  const { profiles, loadProfiles } = useSettingsStore()
+  const { profiles, providers, loadProfiles } = useSettingsStore()
+  const providerName = (id: string) =>
+    providers.find((p) => p.id === id)?.name ?? id
 
   useEffect(() => {
     void loadProfiles()
@@ -31,7 +33,7 @@ export function LLMProfileList() {
               <td>
                 <code>{p.model}</code>
               </td>
-              <td>{p.providerId}</td>
+              <td>{providerName(p.providerId)}</td>
               <td>
                 {p.isDefault && <Badge variant="success">Default</Badge>}
                 {p.isPlanner && <Badge variant="info">Planner</Badge>}
