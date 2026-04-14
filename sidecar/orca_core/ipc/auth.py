@@ -50,6 +50,11 @@ class TokenAuthMiddleware(BaseHTTPMiddleware):
         if path in PUBLIC_PATHS:
             return await call_next(request)
 
+        # CORS preflight (OPTIONS) 는 토큰 없이 통과 — 브라우저가 보내는
+        # preflight 에는 커스텀 헤더가 포함되지 않는다.
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         provided = request.headers.get(TOKEN_HEADER, "")
         if (not provided or not hmac.compare_digest(provided, self._token)) and _SSE_PATH_RE.match(
             path
