@@ -63,6 +63,15 @@ fn build_sidecar_command() -> Command {
 fn main() {
     init_tracing();
 
+    // macOS: dev 모드(앱 번들 없이 실행)에서 window tab 인덱싱 크래시 방지
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_app_kit::NSWindow;
+        use objc2::MainThreadMarker;
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+        NSWindow::setAllowsAutomaticWindowTabbing(false, mtm);
+    }
+
     let bridge = Arc::new(RwLock::new(SidecarBridge::default()));
 
     // sidecar 기동 (실패해도 앱은 뜨되 상태가 Failed 로 노출됨)
