@@ -1,4 +1,4 @@
-// Provider add form — card layout with grid form.
+// Provider add form — Supabase-style card with footer actions.
 
 import { useState } from 'react'
 
@@ -27,7 +27,7 @@ const DEFAULT_URLS: Partial<Record<ProviderKind, string>> = {
 }
 
 export function ProviderAddForm() {
-  const { addProvider, error } = useSettingsStore()
+  const { addProvider } = useSettingsStore()
   const [name, setName] = useState('')
   const [kind, setKind] = useState<ProviderKind>('ollama')
   const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434')
@@ -65,7 +65,10 @@ export function ProviderAddForm() {
   return (
     <div className="settings-card">
       <div className="settings-card__header">
-        <h3 className="settings-card__title">Add Provider</h3>
+        <div>
+          <h3 className="settings-card__title">Add Provider</h3>
+          <p className="settings-card__desc">Connect a new LLM server or API</p>
+        </div>
       </div>
       <div className="settings-card__body">
         <div className="settings-form">
@@ -79,7 +82,7 @@ export function ProviderAddForm() {
             />
           </div>
           <div className="settings-field">
-            <label className="settings-field__label">Kind</label>
+            <label className="settings-field__label">Type</label>
             <select
               value={kind}
               onChange={(e) => handleKindChange(e.target.value as ProviderKind)}
@@ -90,7 +93,7 @@ export function ProviderAddForm() {
               ))}
             </select>
           </div>
-          <div className="settings-field settings-field--wide">
+          <div className="settings-field settings-field--full">
             <label className="settings-field__label">Base URL</label>
             <input
               value={baseUrl}
@@ -99,25 +102,23 @@ export function ProviderAddForm() {
               placeholder="http://127.0.0.1:11434"
             />
           </div>
-          <div className="settings-field">
+          <div className="settings-field settings-field--full">
             <label className="settings-field__label">API Key</label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               className="settings-field__input"
-              placeholder="optional"
+              placeholder="Optional — only needed for cloud providers"
             />
           </div>
-          <div className="settings-form__actions">
-            <Button size="sm" variant="primary" onClick={() => void handleAdd()} disabled={adding}>
-              {adding ? 'Adding...' : 'Add Provider'}
-            </Button>
-          </div>
-          {(localError ?? error) && (
-            <p className="settings-form__error">{localError ?? error}</p>
-          )}
+          {localError && <p className="settings-form__error">{localError}</p>}
         </div>
+      </div>
+      <div className="settings-card__footer">
+        <Button size="sm" variant="primary" onClick={() => void handleAdd()} disabled={adding}>
+          {adding ? 'Adding...' : 'Add Provider'}
+        </Button>
       </div>
     </div>
   )

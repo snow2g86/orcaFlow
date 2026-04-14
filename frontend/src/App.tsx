@@ -64,7 +64,14 @@ export function App() {
       </nav>
 
       <section className="main-area">
-        {!sidecarReady ? (
+        {activeTab === 'settings' ? (
+          <div className="settings-panel">
+            <ProviderList />
+            <ProviderAddForm />
+            <LLMProfileList />
+            <LLMProfileEditor />
+          </div>
+        ) : !sidecarReady ? (
           <div className="main-area__loading">
             {status?.sidecar.state === 'failed' ? (
               <p className="error">
@@ -83,14 +90,6 @@ export function App() {
             {activeTab === 'monitor' && <RunMonitor />}
             {activeTab === 'editor' && <WorkflowEditor />}
             {activeTab === 'policy' && <PolicyManager />}
-            {activeTab === 'settings' && (
-              <div className="settings-panel">
-                <ProviderList />
-                <ProviderAddForm />
-                <LLMProfileList />
-                <LLMProfileEditor />
-              </div>
-            )}
           </>
         )}
       </section>

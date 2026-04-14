@@ -1,4 +1,4 @@
-// LLM Profile editor — card layout with grid form + auto model fetch.
+// LLM Profile editor — Supabase-style card with footer actions.
 
 import { useEffect, useState } from 'react'
 
@@ -66,7 +66,10 @@ export function LLMProfileEditor() {
   return (
     <div className="settings-card">
       <div className="settings-card__header">
-        <h3 className="settings-card__title">Create LLM Profile</h3>
+        <div>
+          <h3 className="settings-card__title">Create LLM Profile</h3>
+          <p className="settings-card__desc">Define model + parameters for agents</p>
+        </div>
       </div>
       <div className="settings-card__body">
         <div className="settings-form">
@@ -137,7 +140,7 @@ export function LLMProfileEditor() {
               className="settings-field__input"
             />
           </div>
-          <div className="settings-field">
+          <div className="settings-field__checkbox-row">
             <label className="settings-field__checkbox">
               <input
                 type="checkbox"
@@ -146,8 +149,6 @@ export function LLMProfileEditor() {
               />
               Planner
             </label>
-          </div>
-          <div className="settings-field">
             <label className="settings-field__checkbox">
               <input
                 type="checkbox"
@@ -157,13 +158,13 @@ export function LLMProfileEditor() {
               Default
             </label>
           </div>
-          <div className="settings-form__actions">
-            <Button size="sm" variant="primary" onClick={() => void handleCreate()} disabled={creating}>
-              {creating ? 'Creating...' : 'Create Profile'}
-            </Button>
-          </div>
           {formError && <p className="settings-form__error">{formError}</p>}
         </div>
+      </div>
+      <div className="settings-card__footer">
+        <Button size="sm" variant="primary" onClick={() => void handleCreate()} disabled={creating}>
+          {creating ? 'Creating...' : 'Create Profile'}
+        </Button>
       </div>
     </div>
   )

@@ -1,18 +1,25 @@
-/* Design tokens — M5 확장 */
+/* Design tokens — Vercel/Linear/Supabase inspired dark theme */
 :root {
-  /* Colors (dark theme) */
-  --bg: #0b0d10;
-  --bg-elevated: #12151a;
-  --fg: #e6e7ea;
-  --muted: #9aa0a6;
-  --card: #14171c;
-  --border: #23272f;
-  --accent: #5fb0ff;
-  --accent-hover: #4a9de8;
-  --error: #ff6b6b;
-  --success: #4caf50;
-  --warning: #ffb74d;
-  --info: #5fb0ff;
+  /* Colors */
+  --bg: #0a0a0a;
+  --bg-elevated: #111111;
+  --fg: #ededed;
+  --muted: #888888;
+  --card: #141414;
+  --border: #262626;
+  --border-hover: #333333;
+  --accent: #0070f3;
+  --accent-hover: #005cc5;
+  --accent-glow: #0070f325;
+  --error: #f04438;
+  --error-muted: #f0443815;
+  --success: #32d583;
+  --success-muted: #32d58320;
+  --warning: #f5a623;
+  --warning-muted: #f5a62320;
+  --info: #0070f3;
+  --info-muted: #0070f320;
+  --bg-input: #0a0a0a;
 
   /* Spacing */
   --space-xs: 4px;
@@ -22,16 +29,16 @@
   --space-xl: 32px;
 
   /* Radius */
-  --radius-sm: 4px;
+  --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
 
   /* Font */
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Sizes */
   --sidebar-width: 240px;
-  --top-bar-height: 56px;
-  --tab-bar-height: 44px;
+  --top-bar-height: 48px;
+  --tab-bar-height: 40px;
 }
